@@ -36,8 +36,6 @@ export const RegisterViews = () => {
 	const [confirmPasswordType, setConfirmPasswordType] = useState(true);
 	const { mutate, data, isPending, isError, error } = useRegisterUser();
 
-	console.log({ isPending, isError, error, data });
-
 	const {
 		register,
 		handleSubmit,
@@ -198,7 +196,7 @@ export const RegisterViews = () => {
 						</div>
 
 						<Button
-							disabled={isPending}
+							disabled={isPending || isError}
 							type="submit"
 							className="w-full rounded mt-5 font-sans"
 						>

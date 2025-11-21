@@ -18,6 +18,9 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { loginSchema } from '../../schema/login-schema';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { useLoginUser } from '../../api/login-user';
+import { toast } from 'sonner';
+import { redirect } from 'next/navigation';
 
 interface Props {
 	email: string;
@@ -26,6 +29,9 @@ interface Props {
 
 export const LoginViews = () => {
 	const [passwordType, setPasswordType] = useState(true);
+	const { mutate, data, isPending, isError, error } = useLoginUser();
+
+	console.log({ data, isPending, isError });
 	const {
 		register,
 		handleSubmit,
@@ -40,8 +46,18 @@ export const LoginViews = () => {
 	});
 
 	const onSubmit = (data: Props) => {
-		console.log(data);
+		mutate(data);
+		reset();
 	};
+
+	if (data?.success === true) {
+		toast.success(data.message);
+		redirect('/');
+	}
+
+	if (error) {
+		toast.error(error.message);
+	}
 	return (
 		<div className="container mx-auto min-h-screen flex items-center justify-center">
 			<Card className="rounded w-2xl">
@@ -99,7 +115,11 @@ export const LoginViews = () => {
 							)}
 						</div>
 
-						<Button type="submit" className="w-full rounded mt-5 font-sans">
+						<Button
+							disabled={isPending || isError}
+							type="submit"
+							className="w-full rounded mt-5 font-sans"
+						>
 							Login
 						</Button>
 					</form>
