@@ -19,6 +19,9 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { registerSchema } from '../../schema/register-schema';
 import { Button } from '@/components/ui/button';
+import { useRegisterUser } from '../../api/create-user';
+import { toast } from 'sonner';
+import { redirect } from 'next/navigation';
 
 interface Props {
 	firstName: string;
@@ -31,6 +34,9 @@ interface Props {
 export const RegisterViews = () => {
 	const [passwordType, setPasswordType] = useState(true);
 	const [confirmPasswordType, setConfirmPasswordType] = useState(true);
+	const { mutate, data, isPending, isError, error } = useRegisterUser();
+
+	console.log({ isPending, isError, error, data });
 
 	const {
 		register,
@@ -49,8 +55,23 @@ export const RegisterViews = () => {
 	});
 
 	const onSubmit = (data: Props) => {
-		console.log(data);
+		const userData = {
+			firstName: data.firstName,
+			lastName: data.lastName,
+			email: data.email,
+			password: data.password,
+		};
+		mutate(userData);
+		reset();
 	};
+
+	if (data?.success === true) {
+		toast.success(data.message);
+		redirect('/login');
+	}
+	if (error) {
+		toast.success(error.message);
+	}
 	return (
 		<div className="container mx-auto min-h-screen flex items-center justify-center">
 			<Card className="rounded w-2xl">
@@ -176,7 +197,11 @@ export const RegisterViews = () => {
 							)}
 						</div>
 
-						<Button type="submit" className="w-full rounded mt-5 font-sans">
+						<Button
+							disabled={isPending}
+							type="submit"
+							className="w-full rounded mt-5 font-sans"
+						>
 							Register
 						</Button>
 					</form>
