@@ -99,7 +99,7 @@ export const LoginViews = () => {
 							)}
 						</div>
 
-						<Button type="submit" className="w-full rounded mt-5">
+						<Button type="submit" className="w-full rounded mt-5 font-sans">
 							Login
 						</Button>
 					</form>
