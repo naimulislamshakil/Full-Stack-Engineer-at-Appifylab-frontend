@@ -17,17 +17,5 @@ export const postSchema = Yup.object().shape({
 	postStatus: Yup.boolean().default(true),
 
 	// image is expected to be a File object (from input[type="file"])
-	image: Yup.mixed()
-		.required('Image is required')
-		.test('fileSize', 'Image must be less than 2 MB', (value) => {
-			if (!value) return false;
-			// value may be File or FileList: handle both
-			const file = value instanceof FileList ? value[0] : value;
-			return file && file.size <= MAX_FILE_SIZE;
-		})
-		.test('fileType', 'Unsupported image format', (value) => {
-			if (!value) return false;
-			const file = value instanceof FileList ? value[0] : value;
-			return file && SUPPORTED_FORMATS.includes(file.type);
-		}),
+	image: Yup.string().required('Image url is required.'),
 });

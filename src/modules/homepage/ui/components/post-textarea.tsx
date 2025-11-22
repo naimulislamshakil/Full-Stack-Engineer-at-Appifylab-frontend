@@ -17,46 +17,39 @@ import {
 	Send,
 	Video,
 } from 'lucide-react';
-import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { postSchema } from '../../schema/post-schema';
 import { toast } from 'sonner';
-import {
-	AlertDialog,
-	AlertDialogAction,
-	AlertDialogCancel,
-	AlertDialogContent,
-	AlertDialogFooter,
-	AlertDialogHeader,
-	AlertDialogTitle,
-	AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { Separator } from '@/components/ui/separator';
+
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useAddPost } from '../../api/add-post';
+import { Spinner } from '@/components/ui/spinner';
 
 interface Props {
 	text: string;
-	image: File | null;
-	postStatus?: boolean;
+	image: string | null;
+	postStatus: boolean;
 }
 
 export const PostTextarea = () => {
 	const fileInputRef = useRef<HTMLInputElement | null>(null);
-	const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+	const { mutate, data, isError, isPending, error } = useAddPost();
+
+	console.log(data, isError, isPending);
 
 	const {
 		register,
 		handleSubmit,
 		setValue,
-		watch,
-		formState: { errors, isValid },
+		reset,
+		formState: { errors },
 	} = useForm<Props>({
 		defaultValues: {
 			text: '',
@@ -65,18 +58,6 @@ export const PostTextarea = () => {
 		resolver: yupResolver(postSchema),
 		mode: 'onChange',
 	});
-
-	const watchedFile = watch('image');
-
-	useEffect(() => {
-		if (!watchedFile) {
-			setPreviewUrl(null);
-			return;
-		}
-		const url = URL.createObjectURL(watchedFile);
-		setPreviewUrl(url);
-		return () => URL.revokeObjectURL(url);
-	}, [watchedFile]);
 
 	if (errors) {
 		if (errors.image) {
@@ -88,7 +69,8 @@ export const PostTextarea = () => {
 	}
 
 	const submit = (data: Props) => {
-		console.log('Form submitted:', data);
+		mutate(data);
+		reset();
 	};
 
 	// Trigger hidden file input
@@ -96,9 +78,34 @@ export const PostTextarea = () => {
 		fileInputRef.current?.click();
 	};
 
+	if (data?.success === true) {
+		toast.success(data.message);
+	}
+
+	if (isError || error) {
+		toast.error(error.message);
+	}
+
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const file = e.target.files?.[0] || null;
-		setValue('image', file, { shouldValidate: true });
+		const file = e.target.files?.[0];
+
+		const formData = new FormData();
+		formData.append('image', file);
+
+		fetch(
+			'https://api.imgbb.com/1/upload?key=4268f2bb824fb4f955a82655bbc0b28c',
+			{
+				method: 'POST',
+				body: formData,
+			}
+		)
+			.then((res) => res.json())
+			.then((data) => {
+				if (data?.success === true) {
+					setValue('image', data?.data?.display_url);
+					toast.success('Image uplode successfully.');
+				}
+			});
 	};
 
 	return (
@@ -177,13 +184,22 @@ export const PostTextarea = () => {
 						</div>
 
 						<div>
-							<Button
-								type="submit"
-								className="font-sans font-semibold bg-blue-500 hover:bg-blue-500 flex items-center gap-1"
-							>
-								<Send />
-								Post
-							</Button>
+							{isPending ? (
+								<Button
+									type="submit"
+									className="font-sans font-semibold bg-blue-500 hover:bg-blue-500 flex items-center gap-1"
+								>
+									<Spinner />
+								</Button>
+							) : (
+								<Button
+									type="submit"
+									className="font-sans font-semibold bg-blue-500 hover:bg-blue-500 flex items-center gap-1"
+								>
+									<Send />
+									Post
+								</Button>
+							)}
 						</div>
 					</CardFooter>
 				</form>
