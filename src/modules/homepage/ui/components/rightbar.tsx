@@ -109,7 +109,7 @@ export const Rightbar = () => {
 
 				<CardContent className="mt-0">
 					{followers.map((follower, i) => (
-						<>
+						<div key={i}>
 							<Separator className="mt-2" />
 
 							<div>
@@ -142,7 +142,7 @@ export const Rightbar = () => {
 									</Button>
 								</div>
 							</div>
-						</>
+						</div>
 					))}
 				</CardContent>
 			</Card>
