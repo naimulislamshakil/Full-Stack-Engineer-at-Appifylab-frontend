@@ -1,6 +1,7 @@
 'use client';
 import { redirect } from 'next/navigation';
 import { useUser } from '../../api/get-user';
+import { TopSection } from '../components/top-section';
 
 export const HomepageViews = () => {
 	const { data: user, isLoading, isError, error } = useUser();
@@ -15,10 +16,7 @@ export const HomepageViews = () => {
 
 	return (
 		<div>
-			<h2 className="text-gray-500">
-				{user?.user.firstName} {user?.user.lastName}
-			</h2>
-			<p>{user?.user.email}</p>
+			<TopSection />
 		</div>
 	);
 };
