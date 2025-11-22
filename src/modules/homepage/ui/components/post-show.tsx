@@ -29,13 +29,29 @@ import {
 	InputGroupAddon,
 	InputGroupInput,
 } from '@/components/ui/input-group';
+import { useLikeAndUnlike } from '../../api/like-and-unlike-post';
+import { toast } from 'sonner';
 
 dayjs.extend(relativeTime);
 
 export const PostShow = () => {
 	const { data: posts, isLoading, isError, error } = useGetAllPost();
+	const { mutate, data, isPending, error: likeError } = useLikeAndUnlike();
 
-	console.log(posts?.post);
+	const handleLove = (id: string) => {
+		mutate(
+			{ id },
+			{
+				onSuccess: (res) => {
+					toast.success(res.message);
+				},
+				onError: (err) => {
+					toast.error(err.message);
+				},
+			}
+		);
+	};
+
 	return (
 		<div>
 			{posts?.post.map((post, i) => (
@@ -89,29 +105,9 @@ export const PostShow = () => {
 
 					<CardFooter className="mt-3 flex flex-col">
 						<div className="flex items-center justify-between w-full">
-							<div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale">
-								<Avatar>
-									<AvatarImage
-										src="https://github.com/shadcn.png"
-										alt="@shadcn"
-									/>
-									<AvatarFallback>CN</AvatarFallback>
-								</Avatar>
-								<Avatar>
-									<AvatarImage
-										src="https://github.com/maxleiter.png"
-										alt="@maxleiter"
-									/>
-									<AvatarFallback>LR</AvatarFallback>
-								</Avatar>
-								<Avatar>
-									<AvatarImage
-										src="https://github.com/evilrabbit.png"
-										alt="@evilrabbit"
-									/>
-									<AvatarFallback>ER</AvatarFallback>
-								</Avatar>
-							</div>
+							<p className="text-md text-gray-500 font-sans">
+								{data?.likeCount} Person Liked
+							</p>
 
 							<div className="flex items-center gap-5">
 								<p className="text-md text-gray-500 font-sans">
@@ -124,8 +120,16 @@ export const PostShow = () => {
 						</div>
 
 						<div className="grid grid-cols-3 items-center gap-4 w-full mt-4">
-							<Button variant="secondary" className="p-6 rounded">
-								<Heart className="size-6" />
+							<Button
+								variant="secondary"
+								className="p-6 rounded"
+								onClick={() => handleLove(post._id)}
+							>
+								{data?.liked === true ? (
+									<Heart fill="red" stroke="red" className="size-6" />
+								) : (
+									<Heart className="size-6" />
+								)}
 								Love
 							</Button>
 							<Button variant="secondary" className="p-6 rounded">
