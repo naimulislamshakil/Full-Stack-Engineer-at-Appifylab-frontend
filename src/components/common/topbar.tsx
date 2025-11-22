@@ -4,28 +4,58 @@ import { useState } from 'react';
 import { Button } from '../ui/button';
 import {
 	BellIcon,
+	ChevronDown,
+	HomeIcon,
 	Menu,
+	MessageCircle,
 	Moon,
-	ShoppingCartIcon,
+	Reply,
+	SearchIcon,
 	Sun,
-	UserRoundIcon,
+	UsersIcon,
 	X,
 } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import { logoutUser, useUser } from '@/modules/homepage/api/get-user';
+import { toast } from 'sonner';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { usePathname, useRouter } from 'next/navigation';
+import Image from 'next/image';
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupInput,
+} from '../ui/input-group';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
-	DropdownMenuTrigger,
 	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
-import { useTheme } from 'next-themes';
-import Image from 'next/image';
-import { redirect } from 'next/navigation';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Separator } from '../ui/separator';
 
 export const Topbar = () => {
+	const pathName = usePathname();
 	const { theme, setTheme } = useTheme();
 	const [open, setOpen] = useState(false);
-	const [dropdown, setDropdown] = useState(false);
-	const [count, setCount] = useState(2);
+	const queryClient = useQueryClient();
+	const router = useRouter();
+
+	const { data: user } = useUser();
+
+	const { mutate: logout, isPending } = useMutation({
+		mutationFn: logoutUser,
+		onSuccess: (data) => {
+			queryClient.clear();
+			toast.success(data?.message);
+			router.push('/login');
+		},
+		onError: (err) => {
+			toast.error(err.message);
+		},
+	});
 
 	return (
 		<div>
@@ -37,34 +67,164 @@ export const Topbar = () => {
 					</button>
 
 					<Link href="/" className="text-2xl font-bold font-manrope">
-						Appifylab
+						<Image src="/logo.svg" height={150} width={200} alt="Logo" />
 					</Link>
 
-					{/* Desktop Menu */}
-					<div className="hidden md:flex items-center gap-6 font-manrope">
-						<Link href="/" className="hover:text-primary">
-							Home
-						</Link>
-						<Link href="/login" className="hover:text-primary">
-							Login
-						</Link>
-						<Link href="/register" className="hover:text-primary">
-							Register
-						</Link>
-					</div>
+					<InputGroup className="rounded-full max-w-[300px] border-blue-500">
+						<InputGroupInput
+							className="focus:ring-0"
+							placeholder="input search text"
+						/>
+						<InputGroupAddon>
+							<SearchIcon className="text-blue-500" />
+						</InputGroupAddon>
+					</InputGroup>
 
-					<div className="flex items-center gap-1">
-						<Button
-							onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-							className="hidden md:flex"
-							variant="ghost"
-						>
-							{theme === 'light' ? (
-								<Moon className="w-5 h-5" />
-							) : (
-								<Sun className="w-5 h-5" />
-							)}
-						</Button>
+					{/* Desktop Menu */}
+
+					<div className="flex items-center gap-5">
+						<div className="hidden md:flex items-center gap-6 font-manrope">
+							<Link
+								href="/"
+								className={
+									pathName === '/'
+										? 'hover:text-primary border-b-2 pb-4 border-b-blue-500 duration-100'
+										: 'hover:text-primary hover:border-b-2 hover:pb-4 hover:border-b-blue-500 duration-100'
+								}
+							>
+								<HomeIcon
+									className={
+										pathName === '/'
+											? 'text-blue-500 hover:text-blue-500'
+											: 'text-gray-500 hover:text-blue-500'
+									}
+								/>
+							</Link>
+							<Link
+								href="/login"
+								className={
+									pathName === '/group'
+										? 'hover:text-primary border-b-2 pb-4 border-b-blue-500 duration-100'
+										: 'hover:text-primary hover:border-b-2 hover:pb-4 hover:border-b-blue-500 duration-100'
+								}
+							>
+								<UsersIcon
+									className={
+										pathName === '/group'
+											? 'text-blue-500 hover:text-blue-500'
+											: 'text-gray-500 hover:text-blue-500'
+									}
+								/>
+							</Link>
+							<Link
+								href="/register"
+								className={
+									pathName === '/notifiction'
+										? 'hover:text-primary border-b-2 pb-4 border-b-blue-500 duration-100'
+										: 'hover:text-primary hover:border-b-2 hover:pb-4 hover:border-b-blue-500 duration-100'
+								}
+							>
+								<BellIcon
+									className={
+										pathName === '/notifiction'
+											? 'text-blue-500 hover:text-blue-500'
+											: 'text-gray-500 hover:text-blue-500'
+									}
+								/>
+							</Link>
+							<Link
+								href="/register"
+								className={
+									pathName === '/message'
+										? 'hover:text-primary border-b-2 pb-4 border-b-blue-500 duration-100'
+										: 'hover:text-primary hover:border-b-2 hover:pb-4 hover:border-b-blue-500 duration-100'
+								}
+							>
+								<MessageCircle
+									className={
+										pathName === '/message'
+											? 'text-blue-500 hover:text-blue-500'
+											: 'text-gray-500 hover:text-blue-500'
+									}
+								/>
+							</Link>
+						</div>
+
+						<DropdownMenu>
+							<DropdownMenuTrigger className="flex items-center gap-3">
+								<Avatar>
+									<AvatarImage src="/profile.png" />
+								</Avatar>
+								<span>
+									{user?.user.firstName ? user?.user.firstName : 'Naimul'}
+								</span>
+								<ChevronDown size={18} className="text-gray-500" />
+							</DropdownMenuTrigger>
+
+							<DropdownMenuContent>
+								<DropdownMenuLabel>My Profile</DropdownMenuLabel>
+								<Separator />
+
+								{user?.success === true && (
+									<>
+										<DropdownMenuItem>
+											<Button
+												className="w-full"
+												onClick={() => logout()}
+												disabled={isPending}
+											>
+												Logout
+											</Button>
+										</DropdownMenuItem>
+										<DropdownMenuItem>
+											<Button
+												onClick={() =>
+													setTheme(theme === 'light' ? 'dark' : 'light')
+												}
+												className="hidden md:flex"
+												variant="ghost"
+											>
+												{theme === 'light' ? (
+													<Moon className="w-5 h-5" />
+												) : (
+													<Sun className="w-5 h-5" />
+												)}
+											</Button>
+										</DropdownMenuItem>
+									</>
+								)}
+
+								{user === undefined && (
+									<>
+										<DropdownMenuItem>
+											<Link href="/login" className="w-full">
+												Login
+											</Link>
+										</DropdownMenuItem>
+										<DropdownMenuItem>
+											<Link href="/register" className="w-full">
+												Register
+											</Link>
+										</DropdownMenuItem>
+										<DropdownMenuItem>
+											<Button
+												onClick={() =>
+													setTheme(theme === 'light' ? 'dark' : 'light')
+												}
+												className="hidden md:flex"
+												variant="ghost"
+											>
+												{theme === 'light' ? (
+													<Moon className="w-5 h-5" />
+												) : (
+													<Sun className="w-5 h-5" />
+												)}
+											</Button>
+										</DropdownMenuItem>
+									</>
+								)}
+							</DropdownMenuContent>
+						</DropdownMenu>
 					</div>
 				</div>
 

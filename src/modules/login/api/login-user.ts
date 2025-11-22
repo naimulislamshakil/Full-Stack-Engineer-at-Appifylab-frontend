@@ -1,14 +1,14 @@
 import { useMutation } from '@tanstack/react-query';
 
-interface LoginResponse  {
+interface LoginResponse {
 	success: boolean;
 	user: {
 		_id: string;
 		firstName: string;
 		lastName: string;
 		email: string;
-		pasword: string;
-		post: [];
+		password: string;
+		posts: any[];
 		createdAt: string;
 		updatedAt: string;
 		__v: number;
