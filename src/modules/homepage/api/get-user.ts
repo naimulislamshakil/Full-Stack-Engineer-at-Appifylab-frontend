@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
 interface User {
 	success: boolean;
@@ -36,11 +36,9 @@ export const useUser = () => {
 	return useQuery<User, Error>({
 		queryKey: ['user'],
 		queryFn: fetchUser,
-		staleTime: 1000 * 60 * 5, // 5 minutes
+		staleTime: 1000 * 60 * 5,
 	});
 };
-
-
 
 export const logoutUser = async (): Promise<Logout> => {
 	const res = await fetch('http://localhost:5000/api/v1/user/logout', {
@@ -52,4 +50,3 @@ export const logoutUser = async (): Promise<Logout> => {
 
 	return res.json();
 };
-
