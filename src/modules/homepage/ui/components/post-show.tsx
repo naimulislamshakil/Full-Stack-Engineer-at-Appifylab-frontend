@@ -19,7 +19,7 @@ import {
 	SendHorizonalIcon,
 	Share,
 } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import Image from 'next/image';
@@ -31,12 +31,16 @@ import {
 } from '@/components/ui/input-group';
 import { useLikeAndUnlike } from '../../api/like-and-unlike-post';
 import { toast } from 'sonner';
+import { useState } from 'react';
+import { useAddComment } from '../../api/add-comment';
 
 dayjs.extend(relativeTime);
 
 export const PostShow = () => {
 	const { data: posts, isLoading, isError, error } = useGetAllPost();
 	const { mutate, data, isPending, error: likeError } = useLikeAndUnlike();
+	const { mutate: commentMutate } = useAddComment();
+	const [comment, setComment] = useState('');
 
 	const handleLove = (id: string) => {
 		mutate(
@@ -50,6 +54,24 @@ export const PostShow = () => {
 				},
 			}
 		);
+	};
+
+	const handelComment = (id: string) => {
+		console.log('gbvahnbs');
+		const data = {
+			postId: id,
+			comment,
+		};
+		commentMutate(data, {
+			onSuccess: (res) => {
+				toast.success(res.message);
+				setComment('');
+			},
+			onError: (res) => {
+				toast.error(res.message);
+				setComment('');
+			},
+		});
 	};
 
 	return (
@@ -145,6 +167,9 @@ export const PostShow = () => {
 						<div className="w-full">
 							<InputGroup className="bg-secondary mt-5 p-7 w-full rounded-full">
 								<InputGroupInput
+									type="text"
+									value={comment}
+									onChange={(e) => setComment(e.target.value)}
 									className="text-lg font-sans"
 									placeholder="Write a comment"
 								/>
@@ -157,7 +182,11 @@ export const PostShow = () => {
 									<Mic />
 								</InputGroupAddon>
 
-								<InputGroupAddon align="inline-end">
+								<InputGroupAddon
+									align="inline-end"
+									className="p-3 hover:bg-white rounded-2xl cursor-pointer"
+									onClick={() => handelComment(post._id)}
+								>
 									<SendHorizonalIcon className="size-5" />
 								</InputGroupAddon>
 							</InputGroup>

@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface PostResponse {
 	success: boolean;
@@ -12,6 +12,7 @@ interface PostInput {
 }
 
 export const useAddPost = () => {
+	const queryClient = useQueryClient();
 	return useMutation<PostResponse, Error, PostInput>({
 		mutationFn: async (data) => {
 			const res = await fetch('http://localhost:5000/api/v1/post/addpost', {
@@ -23,6 +24,10 @@ export const useAddPost = () => {
 
 			if (!res.ok) throw new Error('Post create failed.');
 			return res.json();
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['post'] });
+			queryClient.invalidateQueries({ queryKey: ['user'] });
 		},
 	});
 };

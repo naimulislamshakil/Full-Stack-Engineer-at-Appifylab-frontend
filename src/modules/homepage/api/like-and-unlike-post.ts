@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface PostResponse {
 	success: boolean;
@@ -12,6 +12,7 @@ interface PostInput {
 }
 
 export const useLikeAndUnlike = () => {
+	const queryClient = useQueryClient();
 	return useMutation<PostResponse, Error, PostInput>({
 		mutationFn: async (data) => {
 			const res = await fetch(
@@ -31,6 +32,10 @@ export const useLikeAndUnlike = () => {
 
 			const json: PostResponse = await res.json();
 			return json;
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['post'] });
+			queryClient.invalidateQueries({ queryKey: ['user'] });
 		},
 	});
 };
